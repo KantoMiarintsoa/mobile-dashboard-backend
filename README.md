@@ -1,6 +1,28 @@
 # Mobile Dashboard - Backend
 
-Backend API REST avec NestJS, Prisma et PostgreSQL.
+Backend API REST avec NestJS, Prisma et PostgreSQL, organisé en **architecture modulaire**.
+
+## Architecture par module
+
+Le projet suit l'architecture modulaire de NestJS. Chaque fonctionnalité est isolée dans son propre module avec ses controllers, services et DTOs :
+
+- **PrismaModule** (global) : Gère la connexion à la base de données via Prisma ORM. Injecté globalement dans tous les modules.
+- **AuthModule** : Gère l'authentification (login) avec JWT et Passport. Contient la stratégie JWT et le guard de protection des routes.
+- **UsersModule** : Gère le CRUD des utilisateurs (register, profil, liste, modification, suppression).
+
+Chaque module est indépendant et peut être ajouté/retiré facilement dans `app.module.ts` :
+
+```typescript
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+  ],
+})
+export class AppModule {}
+```
 
 ## Prérequis
 
@@ -20,7 +42,7 @@ pnpm install
 ```
 
 ## Configuration
-x
+
 1. Copier le fichier d'environnement :
 
 ```bash
