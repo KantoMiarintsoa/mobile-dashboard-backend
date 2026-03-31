@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterDto } from '../auth/dto/register.dto';
+import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 
@@ -12,7 +12,7 @@ export class UsersService {
     private notifications: NotificationsGateway,
   ) {}
 
-  async register(dto: RegisterDto) {
+  async create(dto: RegisterDto) {
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });

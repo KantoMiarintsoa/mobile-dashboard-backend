@@ -10,7 +10,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { RegisterDto } from '../auth/dto/register.dto';
+import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -18,9 +18,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class UsersController {
   constructor(private users: UsersService) {}
 
-  @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.users.register(dto);
+  @UseGuards(JwtAuthGuard)
+  @Post('create')
+  create(@Body() dto: RegisterDto) {
+    return this.users.create(dto);
   }
 
   @UseGuards(JwtAuthGuard)
