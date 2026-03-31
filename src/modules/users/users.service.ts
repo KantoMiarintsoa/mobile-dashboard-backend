@@ -3,10 +3,14 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsGateway,
+  ) {}
 
   async register(dto: RegisterDto) {
     const exists = await this.prisma.user.findUnique({
@@ -19,6 +23,7 @@ export class UsersService {
       data: { name: dto.name, email: dto.email, password: hash },
     });
     const { password, ...result } = user;
+    this.notifications.notifyUserCreated(result);
     return result;
   }
 
@@ -42,12 +47,14 @@ export class UsersService {
     }
     const user = await this.prisma.user.update({ where: { id }, data });
     const { password, ...result } = user;
+    this.notifications.notifyUserUpdated(result);
     return result;
   }
 
   async remove(id: string) {
     await this.findOne(id);
     await this.prisma.user.delete({ where: { id } });
+    this.notifications.notifyUserDeleted(id);
     return { message: 'User deleted' };
   }
 }

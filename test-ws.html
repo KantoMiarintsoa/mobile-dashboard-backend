@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test WebSocket</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>WebSocket Events</h2>
+  <div id="events"></div>
+  <script>
+    const socket = io('http://localhost:3002');
+    const div = document.getElementById('events');
+
+    socket.on('connect', () => {
+      div.innerHTML += '<p>Connected!</p>';
+    });
+
+    socket.on('user:created', (data) => {
+      div.innerHTML += '<p>User created: ' + JSON.stringify(data) + '</p>';
+    });
+
+    socket.on('user:updated', (data) => {
+      div.innerHTML += '<p>User updated: ' + JSON.stringify(data) + '</p>';
+    });
+
+    socket.on('user:deleted', (data) => {
+      div.innerHTML += '<p>User deleted: ' + JSON.stringify(data) + '</p>';
+    });
+  </script>
+</body>
+</html>
