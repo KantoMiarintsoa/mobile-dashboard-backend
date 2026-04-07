@@ -5,6 +5,7 @@ import {
   Put,
   Delete,
   Param,
+  Query,
   Body,
   UseGuards,
   Request,
@@ -32,8 +33,8 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('list')
-  findAll() {
-    return this.users.findAll();
+  findAll(@Query('search') search?: string) {
+    return this.users.findAll(search);
   }
 
   @UseGuards(JwtAuthGuard)

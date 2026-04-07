@@ -27,8 +27,16 @@ export class UsersService {
     return result;
   }
 
-  async findAll() {
-    const users = await this.prisma.user.findMany();
+  async findAll(search?: string) {
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : undefined;
+    const users = await this.prisma.user.findMany({ where });
     return users.map(({ password, ...user }) => user);
   }
 
