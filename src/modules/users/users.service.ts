@@ -12,7 +12,7 @@ export class UsersService {
     private notifications: NotificationsGateway,
   ) {}
 
-  async create(dto: RegisterDto) {
+  async create(dto: RegisterDto, actorName: string) {
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -23,7 +23,7 @@ export class UsersService {
       data: { name: dto.name, email: dto.email, password: hash },
     });
     const { password, ...result } = user;
-    this.notifications.notifyUserCreated(result);
+    this.notifications.notifyUserCreated(result, actorName);
     return result;
   }
 
@@ -47,7 +47,7 @@ export class UsersService {
     return result;
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, actorName: string) {
     await this.findOne(id);
     const data: any = { ...dto };
     if (dto.password) {
@@ -55,14 +55,14 @@ export class UsersService {
     }
     const user = await this.prisma.user.update({ where: { id }, data });
     const { password, ...result } = user;
-    this.notifications.notifyUserUpdated(result);
+    this.notifications.notifyUserUpdated(result, actorName);
     return result;
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, actorName: string) {
+    const user = await this.findOne(id);
     await this.prisma.user.delete({ where: { id } });
-    this.notifications.notifyUserDeleted(id);
+    this.notifications.notifyUserDeleted(id, user.name, actorName);
     return { message: 'User deleted' };
   }
 }

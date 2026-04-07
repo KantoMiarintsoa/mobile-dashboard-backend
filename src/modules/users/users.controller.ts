@@ -21,8 +21,8 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create')
-  create(@Body() dto: RegisterDto) {
-    return this.users.create(dto);
+  create(@Body() dto: RegisterDto, @Request() req) {
+    return this.users.create(dto, req.user.name);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -45,13 +45,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id/update')
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.users.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateUserDto, @Request() req) {
+    return this.users.update(id, dto, req.user.name);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id/delete')
-  remove(@Param('id') id: string) {
-    return this.users.remove(id);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.users.remove(id, req.user.name);
   }
 }

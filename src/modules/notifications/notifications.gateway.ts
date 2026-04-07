@@ -26,22 +26,32 @@ export class NotificationsGateway
     console.log(`Client disconnected: ${client.id}`);
   }
 
-  async notifyUserCreated(user: any) {
-    await this.prisma.notification.create({
-      data: { type: 'user:created', message: `User ${user.name} created`, userId: user.id },
+  async notifyUserCreated(user: any, actorName: string) {
+    const notification = await this.prisma.notification.create({
+      data: {
+        type: 'user:created',
+        message: `${actorName} created ${user.name}`,
+        actorName,
+        userId: user.id,
+      },
     });
-    this.server.emit('user:created', user);
+    this.server.emit('user:created', { ...user, notification });
   }
 
-  async notifyUserUpdated(user: any) {
-    await this.prisma.notification.create({
-      data: { type: 'user:updated', message: `User ${user.name} updated`, userId: user.id },
+  async notifyUserUpdated(user: any, actorName: string) {
+    const notification = await this.prisma.notification.create({
+      data: {
+        type: 'user:updated',
+        message: `${actorName} updated ${user.name}`,
+        actorName,
+        userId: user.id,
+      },
     });
-    this.server.emit('user:updated', user);
+    this.server.emit('user:updated', { ...user, notification });
   }
 
-  async notifyUserDeleted(id: string) {
+  async notifyUserDeleted(id: string, targetName: string, actorName: string) {
     await this.prisma.notification.deleteMany({ where: { userId: id } });
-    this.server.emit('user:deleted', { id });
+    this.server.emit('user:deleted', { id, actorName, targetName });
   }
 }
