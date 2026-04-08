@@ -3,6 +3,9 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -16,6 +19,8 @@ export class NotificationsGateway
   @WebSocketServer()
   server: Server;
 
+  private connectedUsers = new Map<string, { userId: string; userName: string }>();
+
   constructor(private prisma: PrismaService) {}
 
   handleConnection(client: Socket) {
@@ -24,6 +29,32 @@ export class NotificationsGateway
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
+    this.connectedUsers.delete(client.id);
+    this.broadcastPresence();
+  }
+
+  @SubscribeMessage('presence:join')
+  handleJoin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string; userName: string },
+  ) {
+    this.connectedUsers.set(client.id, {
+      userId: data.userId,
+      userName: data.userName,
+    });
+    this.broadcastPresence();
+  }
+
+  private broadcastPresence() {
+    const unique = new Map<string, string>();
+    for (const { userId, userName } of this.connectedUsers.values()) {
+      unique.set(userId, userName);
+    }
+    const onlineUsers = Array.from(unique.entries()).map(([id, name]) => ({
+      id,
+      name,
+    }));
+    this.server.emit('presence:update', onlineUsers);
   }
 
   async notifyUserCreated(user: any, actorName: string) {
@@ -51,7 +82,14 @@ export class NotificationsGateway
   }
 
   async notifyUserDeleted(id: string, targetName: string, actorName: string) {
-    await this.prisma.notification.deleteMany({ where: { userId: id } });
-    this.server.emit('user:deleted', { id, actorName, targetName });
+    const notification = await this.prisma.notification.create({
+      data: {
+        type: 'user:deleted',
+        message: `${actorName} deleted ${targetName}`,
+        actorName,
+        userId: undefined,
+      },
+    });
+    this.server.emit('user:deleted', { id, actorName, targetName, notification });
   }
 }
