@@ -1,10 +1,33 @@
-import { Controller, Get, Patch, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Query, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PushService } from './push.service';
 
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pushService: PushService,
+  ) {}
+
+  @Get('vapid-public-key')
+  getVapidPublicKey() {
+    return { key: this.pushService.getPublicKey() };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('push/subscribe')
+  subscribe(@Body() body: { endpoint: string; keys: { p256dh: string; auth: string } }, @Request() req) {
+    this.pushService.subscribe(req.user.id, body);
+    return { message: 'Subscribed' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('push/unsubscribe')
+  unsubscribe(@Request() req) {
+    this.pushService.unsubscribe(req.user.id);
+    return { message: 'Unsubscribed' };
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('stats')

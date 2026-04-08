@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PushService } from './push.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -21,7 +22,10 @@ export class NotificationsGateway
 
   private connectedUsers = new Map<string, { userId: string; userName: string }>();
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pushService: PushService,
+  ) {}
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
@@ -67,6 +71,7 @@ export class NotificationsGateway
       },
     });
     this.server.emit('user:created', { ...user, notification });
+    this.pushService.sendToAll('Nouvel utilisateur', `${actorName} a créé ${user.name}`);
   }
 
   async notifyUserUpdated(user: any, actorName: string) {
@@ -79,6 +84,7 @@ export class NotificationsGateway
       },
     });
     this.server.emit('user:updated', { ...user, notification });
+    this.pushService.sendToAll('Utilisateur modifié', `${actorName} a modifié ${user.name}`);
   }
 
   async notifyUserDeleted(id: string, targetName: string, actorName: string) {
@@ -87,9 +93,9 @@ export class NotificationsGateway
         type: 'user:deleted',
         message: `${actorName} deleted ${targetName}`,
         actorName,
-        userId: undefined,
       },
     });
     this.server.emit('user:deleted', { id, actorName, targetName, notification });
+    this.pushService.sendToAll('Utilisateur supprimé', `${actorName} a supprimé ${targetName}`);
   }
 }
