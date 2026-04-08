@@ -43,17 +43,24 @@ export class NotificationsController {
       orderBy: { createdAt: 'asc' },
     });
 
+    // Use local date string to avoid UTC offset issues
+    const toLocalDate = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
     const map = new Map<string, { created: number; updated: number; deleted: number }>();
 
     for (let i = 0; i <= nbDays; i++) {
       const d = new Date(since);
       d.setDate(d.getDate() + i);
-      const key = d.toISOString().slice(0, 10);
-      map.set(key, { created: 0, updated: 0, deleted: 0 });
+      map.set(toLocalDate(d), { created: 0, updated: 0, deleted: 0 });
     }
 
     for (const n of notifications) {
-      const key = n.createdAt.toISOString().slice(0, 10);
+      const key = toLocalDate(new Date(n.createdAt));
       const entry = map.get(key);
       if (!entry) continue;
       if (n.type === 'user:created') entry.created++;
