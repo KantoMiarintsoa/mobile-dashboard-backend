@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Query, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PushService } from './push.service';
@@ -77,6 +77,14 @@ export class NotificationsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('count')
+  async count() {
+    const total = await this.prisma.notification.count();
+    const unread = await this.prisma.notification.count({ where: { read: false } });
+    return { total, unread };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('read')
   async markAllRead() {
     await this.prisma.notification.updateMany({
@@ -84,5 +92,19 @@ export class NotificationsController {
       data: { read: true },
     });
     return { message: 'All notifications marked as read' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    await this.prisma.notification.delete({ where: { id } });
+    return { message: 'Notification deleted' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete()
+  async removeAll() {
+    await this.prisma.notification.deleteMany();
+    return { message: 'All notifications deleted' };
   }
 }
