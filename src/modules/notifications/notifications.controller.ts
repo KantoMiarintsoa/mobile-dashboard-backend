@@ -7,15 +7,6 @@ export class NotificationsController {
   constructor(private prisma: PrismaService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  findAll() {
-    return this.prisma.notification.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('stats')
   async getStats(@Query('days') days?: string) {
     const nbDays = Math.min(Number(days) || 7, 30);
@@ -31,7 +22,7 @@ export class NotificationsController {
 
     const map = new Map<string, { created: number; updated: number; deleted: number }>();
 
-    for (let i = 0; i < nbDays; i++) {
+    for (let i = 0; i <= nbDays; i++) {
       const d = new Date(since);
       d.setDate(d.getDate() + i);
       const key = d.toISOString().slice(0, 10);
@@ -51,6 +42,15 @@ export class NotificationsController {
       date,
       ...counts,
     }));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  findAll() {
+    return this.prisma.notification.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
