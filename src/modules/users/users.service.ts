@@ -65,4 +65,10 @@ export class UsersService {
     this.notifications.notifyUserDeleted(id, user.name, actorName);
     return { message: 'User deleted' };
   }
+
+  async removeAll(actorId: string) {
+    const count = await this.prisma.user.count({ where: { id: { not: actorId } } });
+    await this.prisma.user.deleteMany({ where: { id: { not: actorId } } });
+    return { message: `${count} users deleted`, count };
+  }
 }

@@ -56,6 +56,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @Delete('delete-all')
+  removeAll(@Request() req) {
+    return this.users.removeAll(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Delete(':id/delete')
   remove(@Param('id') id: string, @Request() req) {
     return this.users.remove(id, req.user.name);
