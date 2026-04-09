@@ -37,8 +37,12 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('list')
-  findAll(@Query('search') search?: string) {
-    return this.users.findAll(search);
+  findAll(
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'asc' | 'desc',
+  ) {
+    return this.users.findAll(search, sortBy, order);
   }
 
   @UseGuards(JwtAuthGuard)

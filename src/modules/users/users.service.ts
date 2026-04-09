@@ -27,7 +27,7 @@ export class UsersService {
     return result;
   }
 
-  async findAll(search?: string) {
+  async findAll(search?: string, sortBy?: string, order?: 'asc' | 'desc') {
     const where = search
       ? {
           OR: [
@@ -36,7 +36,11 @@ export class UsersService {
           ],
         }
       : undefined;
-    const users = await this.prisma.user.findMany({ where });
+    const allowedFields = ['name', 'email', 'role', 'createdAt'];
+    const orderBy = sortBy && allowedFields.includes(sortBy)
+      ? { [sortBy]: order || 'asc' }
+      : { createdAt: 'desc' as const };
+    const users = await this.prisma.user.findMany({ where, orderBy });
     return users.map(({ password, ...user }) => user);
   }
 
