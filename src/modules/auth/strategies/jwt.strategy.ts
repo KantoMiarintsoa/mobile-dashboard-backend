@@ -21,6 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { id: payload.sub },
     });
     if (!user) throw new UnauthorizedException('Unauthorized');
+    if (!user.active) throw new UnauthorizedException('Account disabled');
     const { password, ...result } = user;
     return result;
   }

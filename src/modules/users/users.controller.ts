@@ -56,6 +56,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @Put(':id/toggle-active')
+  toggleActive(@Param('id') id: string) {
+    return this.users.toggleActive(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Delete('delete-all')
   removeAll(@Request() req) {
     return this.users.removeAll(req.user.id);

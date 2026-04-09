@@ -66,6 +66,16 @@ export class UsersService {
     return { message: 'User deleted' };
   }
 
+  async toggleActive(id: string) {
+    const user = await this.findOne(id);
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { active: !user.active },
+    });
+    const { password, ...result } = updated;
+    return result;
+  }
+
   async removeAll(actorId: string) {
     const count = await this.prisma.user.count({ where: { id: { not: actorId } } });
     await this.prisma.user.deleteMany({ where: { id: { not: actorId } } });
